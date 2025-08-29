@@ -83,20 +83,33 @@ fun Home() {
     val context = LocalContext.current
     var language by remember { mutableStateOf("") }
 
-    var idiomaSelecionado by remember { mutableStateOf("Espanhol") }
-    var bandeiraSelecionada by remember { mutableStateOf(R.drawable.espanha) }
-
+    var idiomaSelecionado by remember { mutableStateOf<String?>(null) }
+    var bandeiraSelecionada by remember { mutableStateOf<Int?>(null) }
+    var idiomaCode by remember { mutableStateOf<String?>(null) }
     var mostrarTraducao by remember { mutableStateOf(false) }
-
-    var idiomaCode by remember { mutableStateOf("es") }
 
 
     LaunchedEffect(Unit) {
-        LanguagePreferences.getLanguage(context = context).collect {
-            language = it
-            updateLocale(context, language)
+        LanguagePreferences.getLanguage(context = context).collect { languageCode ->
+
+            updateLocale(context, languageCode)
+
+
+            when (languageCode) {
+                "en" -> {
+                    idiomaSelecionado = "Inglês"
+                    bandeiraSelecionada = R.drawable.eua
+                    idiomaCode = "en"
+                }
+                "es" -> {
+                    idiomaSelecionado = "Espanhol"
+                    bandeiraSelecionada = R.drawable.espanha
+                    idiomaCode = "es"
+                }
+            }
         }
     }
+
 
     Scaffold(
         topBar = {
@@ -176,27 +189,28 @@ fun Home() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
 
-                            Text(
-                                text = idiomaSelecionado,
-                                style = TextStyle(
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
+                            idiomaSelecionado?.let {
+                                Text(
+                                    text = it,
+                                    style = TextStyle(
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
                                 )
-                            )
-
-                            Image(
-                                painter = painterResource(bandeiraSelecionada),
-                                contentDescription = "Bandeira da Espanha",
-                                Modifier.size(50.dp)
-                            )
+                            }
+                            bandeiraSelecionada?.let {
+                                Image(
+                                    painter = painterResource(it),
+                                    contentDescription = "Bandeira do idioma selecionado",
+                                    Modifier.size(50.dp)
+                                )
+                            }
                         }
 
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
-
-
 
                             DropdownMenuItem(
                                 text = {
@@ -258,13 +272,15 @@ fun Home() {
                 texto = "Meu nome é Thamires Sarges, eu moro no Brasil, e sou desenvolvedora mobile",
                 mostrarBotaoTraduzir = true,
                 onTraduzirClick = {
-                    updateLocale(context, idiomaCode)
-                    mostrarTraducao = true
+                    idiomaCode?.let {
+                        updateLocale(context, it)
+                        mostrarTraducao = true
+                    }
                 }
             )
 
             ContentCard(
-                idioma = stringResource(R.string.idioma),
+                idioma = idiomaSelecionado ?: stringResource(R.string.idioma),
                 texto = if (mostrarTraducao) stringResource(R.string.descricao) else "Clique em 'Traduzir'",
                 mostrarBotaoTraduzir = false,
                 onTraduzirClick = {}
